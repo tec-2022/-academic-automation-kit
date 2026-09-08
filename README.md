@@ -5,9 +5,9 @@
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue.svg)
 
-> Herramienta creada y mantenida por **Fredy Luis Vidalón Lozano** para facilitar la preparación, configuración, diagnóstico y automatización de computadoras en contextos universitarios.
+> Herramienta creada y mantenida por **Fredy Luis Vidalón Lozano** para preparar, configurar, diagnosticar y automatizar computadoras en contextos universitarios.
 
-**Academic Automation Kit** reúne scripts, perfiles y utilidades auditables para preparar equipos según la carrera, instalar software, detectar conflictos, reparar configuraciones y simplificar tareas técnicas para personas con o sin experiencia. La prioridad es que cada herramienta sea fácil de entender, segura por defecto y útil en situaciones reales.
+**Academic Automation Kit** ya no es solo una colección de scripts. Su núcleo v0.4 incluye perfiles por carrera, auditoría del equipo antes de instalar, validación de paquetes mediante Winget, limpieza segura de temporales, comprobaciones posteriores a la instalación, diagnóstico de conflictos y una capa de IA local opcional que nunca sustituye al motor determinista.
 
 ## Autor
 
@@ -16,7 +16,49 @@ Creador y desarrollador de Academic Automation Kit.
 
 Repositorio: `tec-2022/-academic-automation-kit`
 
-## Inicio rápido
+## Preparar una PC según la carrera
+
+El flujo principal es: **detectar → auditar → mostrar plan → confirmar → preparar → instalar → verificar**.
+
+```powershell
+python scripts/labs/career-pc-prep.py careers
+python scripts/labs/career-pc-prep.py plan informatics-engineering
+python scripts/labs/career-pc-prep.py prepare informatics-engineering
+```
+
+El comando `plan` no instala nada. Antes de ofrecer un paquete, el motor comprueba en tiempo de ejecución que su identificador exista en Winget y detecta si ya está instalado. Los paquetes incompatibles o no resolubles se bloquean en lugar de simular una instalación.
+
+### Perfiles incluidos
+
+| Carrera / perfil | Enfoque principal |
+|---|---|
+| Ingeniería Informática | Programación, web, bases de datos, APIs y contenedores |
+| Ingeniería en Sistemas Computacionales | Java, desarrollo, bases de datos, APIs y contenedores |
+| Ingeniería Industrial | Python, R, RStudio, análisis y documentación |
+| Ingeniería Civil | FreeCAD, QGIS, modelado, automatización y documentación |
+| Ingeniería Mecatrónica | Arduino, KiCad, FreeCAD, Python y control de versiones |
+| Ingeniería Electrónica | PCB, microcontroladores, programación y CAD |
+| Ciencia de Datos | Python, Miniconda, R, RStudio y entornos reproducibles |
+
+Cada perfil separa herramientas en `essential`, `recommended` y `specialized`. Los paquetes especializados pueden declarar requisitos de RAM o virtualización para evitar instalaciones inadecuadas.
+
+## Preparación segura
+
+Antes de una preparación completa, el motor puede revisar y limpiar exclusivamente ubicaciones temporales seguras. No elimina Documentos, Descargas, Escritorio, perfiles de navegador ni carpetas arbitrarias de aplicaciones. La limpieza muestra primero una estimación y después procesa únicamente ubicaciones permitidas.
+
+Para instalaciones relevantes, el resultado de Winget no se considera suficiente: cuando existe un `health_check`, el toolkit intenta ejecutar la herramienta instalada (`python --version`, `git --version`, `node --version`, etc.) y marca **OK** o **NECESITA ATENCIÓN**.
+
+## MySQL y conflictos reales
+
+El perfil de informática integra MySQL como paquete diagnosticable. El módulo MySQL Smart Setup permanece separado porque antes de configurarlo debe revisar XAMPP/MariaDB/MySQL existentes, servicios, puertos y exposición de red. El objetivo es no sobrescribir una instalación previa ni asumir que el puerto 3306 está libre.
+
+## IA local opcional y rápida
+
+La IA no es obligatoria. Las acciones conocidas se resuelven primero mediante reglas y funciones auditables. La IA local solo entra como fallback para interpretar lenguaje natural ambiguo, devuelve intenciones permitidas y no recibe una ruta para ejecutar comandos arbitrarios como administrador.
+
+El adaptador local está configurado para baja latencia: contexto pequeño, salida corta, temperatura 0, `keep_alive` y modelo ligero configurable. Si el usuario decide no descargar IA, el resto de la plataforma sigue funcionando.
+
+## Inicio rápido del catálogo clásico
 
 ```bash
 git clone https://github.com/tec-2022/-academic-automation-kit.git
@@ -24,80 +66,56 @@ cd ./-academic-automation-kit
 python toolkit.py list
 ```
 
-El launcher central permite descubrir herramientas por audiencia o categoría:
+El launcher de terminal también expone `career-pc-prep` en la categoría `pc-preparation`.
 
-```bash
-python toolkit.py list --audience students
-python toolkit.py list --audience teachers
-python toolkit.py list --category research
-```
-
-Ejemplo de ejecución:
-
-```bash
-python toolkit.py run gradebook-calculator -- examples/gradebook.csv --weights tareas=30,examen=40,proyecto=30 --output resultado.csv
-```
-
-Consulta [`docs/USAGE.md`](docs/USAGE.md) para más ejemplos.
-
-## Automatizaciones incluidas
+## Automatizaciones adicionales
 
 | Área | Automatización | Uso |
 |---|---|---|
-| Estudiantes | Semester Folder Builder | Crea carpetas ordenadas por materia y tipo de evidencia |
-| Estudiantes | Assignment Renamer | Renombra entregas con una convención consistente y modo `--dry-run` |
-| Estudiantes | Deadline Planner | Convierte un CSV de entregas en un calendario `.ics` con recordatorios |
-| Docentes | Gradebook Calculator | Calcula calificaciones ponderadas y reporta datos faltantes |
-| Docentes | Attendance Summary | Resume asistencias, faltas, porcentajes y alertas |
-| Docentes | Random Team Maker | Forma equipos reproducibles mediante una semilla opcional |
-| Docentes | Rubric Generator | Genera rúbricas Markdown desde una especificación CSV |
-| Investigación | Citation Deduplicator | Detecta referencias bibliográficas repetidas |
-| Investigación | Literature Matrix | Genera una matriz estructurada de revisión de literatura |
-| Datos | CSV Cleaner | Normaliza encabezados, espacios, filas y columnas vacías sin sobrescribir el original |
-| Datos | Student Data Anonymizer | Seudonimiza identificadores antes de análisis o demostraciones |
-| Laboratorios | MySQL Smart Setup | Detecta conflictos, instala MySQL Community y configura FEDERATED/LAN de forma aislada |
+| Preparación PC | Career PC Prep | Audita y prepara Windows según carrera |
+| Estudiantes | Semester Folder Builder | Crea carpetas ordenadas por materia |
+| Estudiantes | Assignment Renamer | Renombra entregas con modo `--dry-run` |
+| Estudiantes | Deadline Planner | Genera calendarios `.ics` |
+| Docentes | Gradebook Calculator | Calcula calificaciones ponderadas |
+| Docentes | Attendance Summary | Resume asistencia y alertas |
+| Docentes | Random Team Maker | Forma equipos reproducibles |
+| Docentes | Rubric Generator | Genera rúbricas Markdown |
+| Investigación | Citation Deduplicator | Detecta referencias repetidas |
+| Investigación | Literature Matrix | Genera matrices de literatura |
+| Datos | CSV Cleaner | Limpia CSV sin sobrescribir originales |
+| Datos | Student Data Anonymizer | Seudonimiza identificadores |
+| Laboratorios | MySQL Smart Setup | Prepara MySQL Community de forma aislada |
 
 ## Estructura
 
 ```text
 .
-├─ toolkit.py                    # Launcher central
-├─ catalog.json                  # Catálogo legible por máquinas
-├─ academic_toolkit/             # Motor de plataforma
+├─ toolkit.py
+├─ catalog.json
+├─ academic_toolkit/
+│  ├─ careers.json
+│  ├─ career_engine.py
+│  ├─ health_checks.py
+│  ├─ software_manager.py
+│  ├─ system_prepare.py
+│  ├─ predictor.py
+│  └─ ai.py
 ├─ scripts/
 │  ├─ students/
 │  ├─ teachers/
 │  ├─ research/
 │  ├─ data/
 │  └─ labs/
-├─ examples/                     # Datos ficticios para probar scripts
-├─ tests/                        # Smoke tests sin datos reales
+├─ tests/
 ├─ docs/
-│  ├─ USAGE.md
-│  └─ ROADMAP.md
-├─ .github/workflows/validate.yml
-├─ CONTRIBUTING.md
-├─ SECURITY.md
-└─ LICENSE
+└─ .github/workflows/validate.yml
 ```
 
-## Diseño y seguridad
+## Seguridad y calidad
 
-Los scripts que modifican el sistema validan el estado previo, usan mínimos privilegios y evitan exponer servicios a Internet por defecto. Los scripts de datos no suben información estudiantil a servicios externos. Los ejemplos contienen datos ficticios.
+Los cambios de sistema deben validarse antes de ejecutarse, operar con mínimos privilegios y evitar abrir servicios a Internet por defecto. Los ejemplos no contienen información académica real y la IA no puede convertirse en un ejecutor privilegiado de comandos generados.
 
-La IA será opcional y funcionará como capa de interpretación, diagnóstico y asistencia. Las acciones críticas seguirán pasando por un motor determinista y validado.
-
-## Calidad
-
-Cada push ejecuta GitHub Actions en Linux y Windows para:
-
-- compilar todos los scripts Python;
-- ejecutar smoke tests de las automatizaciones principales;
-- analizar sintaxis de PowerShell.
-
-## Contribuir
-
-Se aceptan automatizaciones útiles para educación superior siempre que incluyan validaciones, documentación, ejemplo de uso y no contengan datos personales ni secretos. Consulta [`CONTRIBUTING.md`](CONTRIBUTING.md).
+GitHub Actions compila `academic_toolkit`, scripts y tests, valida el JSON de perfiles, ejecuta smoke tests y analiza la sintaxis de PowerShell en Windows.
 
 ## Licencia
 
