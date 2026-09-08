@@ -1,0 +1,23 @@
+{
+  "id": "informatics-engineering",
+  "name": "Ingeniería Informática",
+  "author": "Fredy Luis Vidalón Lozano",
+  "platform": "windows",
+  "description": "Perfil base para preparar una PC de programación, control de versiones, bases de datos, web, contenedores y pruebas de APIs.",
+  "packages": [
+    {"id":"Microsoft.VisualStudioCode","name":"Visual Studio Code","group":"programming","required":true},
+    {"id":"Git.Git","name":"Git","group":"version-control","required":true},
+    {"id":"Python.Python.3.13","name":"Python 3","group":"programming","required":true},
+    {"id":"OpenJS.NodeJS.LTS","name":"Node.js LTS","group":"web","required":true},
+    {"id":"Oracle.MySQL","name":"MySQL Community Server","group":"databases","required":true},
+    {"id":"Oracle.MySQLWorkbench","name":"MySQL Workbench","group":"databases","required":true},
+    {"id":"Postman.Postman","name":"Postman","group":"apis","required":false},
+    {"id":"Docker.DockerDesktop","name":"Docker Desktop","group":"containers","required":false},
+    {"id":"Microsoft.PowerShell","name":"PowerShell 7","group":"automation","required":false}
+  ],
+  "post_install": {
+    "mysql": "diagnose-before-configure",
+    "verification": true,
+    "restart_only_if_required": true
+  }
+}
