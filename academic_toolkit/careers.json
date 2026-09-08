@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "author": "Fredy Luis Vidalón Lozano",
+  "platform": "windows",
+  "careers": [
+    {
+      "id": "informatics-engineering",
+      "name": "Ingeniería Informática",
+      "description": "Programación, web, bases de datos, APIs, automatización y contenedores.",
+      "packages": [
+        {"id":"Microsoft.VisualStudioCode","name":"Visual Studio Code","tier":"essential","group":"programming","health_check":["code","--version"]},
+        {"id":"Git.Git","name":"Git","tier":"essential","group":"version-control","health_check":["git","--version"]},
+        {"id":"Python.Python.3.13","name":"Python 3","tier":"essential","group":"programming","health_check":["python","--version"]},
+        {"id":"OpenJS.NodeJS.LTS","name":"Node.js LTS","tier":"essential","group":"web","health_check":["node","--version"]},
+        {"id":"Oracle.MySQL","name":"MySQL Community Server","tier":"recommended","group":"databases","diagnostic":"mysql"},
+        {"id":"Oracle.MySQLWorkbench","name":"MySQL Workbench","tier":"recommended","group":"databases"},
+        {"id":"Postman.Postman","name":"Postman","tier":"recommended","group":"apis"},
+        {"id":"Docker.DockerDesktop","name":"Docker Desktop","tier":"specialized","group":"containers","requires":{"ram_gb":8,"virtualization":true}},
+        {"id":"Microsoft.PowerShell","name":"PowerShell 7","tier":"specialized","group":"automation","health_check":["pwsh","--version"]}
+      ]
+    },
+    {
+      "id": "computer-systems-engineering",
+      "name": "Ingeniería en Sistemas Computacionales",
+      "description": "Desarrollo de software, Java, bases de datos, redes, APIs y contenedores.",
+      "packages": [
+        {"id":"Microsoft.VisualStudioCode","name":"Visual Studio Code","tier":"essential","group":"programming"},
+        {"id":"Git.Git","name":"Git","tier":"essential","group":"version-control","health_check":["git","--version"]},
+        {"id":"Python.Python.3.13","name":"Python 3","tier":"essential","group":"programming","health_check":["python","--version"]},
+        {"id":"EclipseAdoptium.Temurin.21.JDK","name":"Temurin JDK 21","tier":"essential","group":"programming","health_check":["java","-version"]},
+        {"id":"OpenJS.NodeJS.LTS","name":"Node.js LTS","tier":"recommended","group":"web","health_check":["node","--version"]},
+        {"id":"Oracle.MySQL","name":"MySQL Community Server","tier":"recommended","group":"databases","diagnostic":"mysql"},
+        {"id":"Oracle.MySQLWorkbench","name":"MySQL Workbench","tier":"recommended","group":"databases"},
+        {"id":"Postman.Postman","name":"Postman","tier":"recommended","group":"apis"},
+        {"id":"Docker.DockerDesktop","name":"Docker Desktop","tier":"specialized","group":"containers","requires":{"ram_gb":8,"virtualization":true}}
+      ]
+    },
+    {
+      "id": "industrial-engineering",
+      "name": "Ingeniería Industrial",
+      "description": "Análisis de datos, estadística, programación y documentación técnica.",
+      "packages": [
+        {"id":"Python.Python.3.13","name":"Python 3","tier":"essential","group":"analytics","health_check":["python","--version"]},
+        {"id":"RProject.R","name":"R","tier":"essential","group":"statistics","health_check":["R","--version"]},
+        {"id":"Posit.RStudio","name":"RStudio","tier":"essential","group":"statistics"},
+        {"id":"TheDocumentFoundation.LibreOffice","name":"LibreOffice","tier":"recommended","group":"productivity"},
+        {"id":"Microsoft.VisualStudioCode","name":"Visual Studio Code","tier":"recommended","group":"programming"},
+        {"id":"Git.Git","name":"Git","tier":"specialized","group":"version-control","health_check":["git","--version"]}
+      ]
+    },
+    {
+      "id": "civil-engineering",
+      "name": "Ingeniería Civil",
+      "description": "CAD libre, SIG, modelado 3D, automatización y documentación técnica.",
+      "packages": [
+        {"id":"FreeCAD.FreeCAD","name":"FreeCAD","tier":"essential","group":"cad"},
+        {"id":"QGIS.QGIS","name":"QGIS","tier":"essential","group":"gis"},
+        {"id":"TheDocumentFoundation.LibreOffice","name":"LibreOffice","tier":"recommended","group":"productivity"},
+        {"id":"Python.Python.3.13","name":"Python 3","tier":"recommended","group":"automation","health_check":["python","--version"]},
+        {"id":"BlenderFoundation.Blender","name":"Blender","tier":"specialized","group":"3d","requires":{"ram_gb":8}}
+      ]
+    },
+    {
+      "id": "mechatronics-engineering",
+      "name": "Ingeniería Mecatrónica",
+      "description": "Programación, electrónica, PCB, microcontroladores y diseño mecánico.",
+      "packages": [
+        {"id":"ArduinoSA.IDE.stable","name":"Arduino IDE","tier":"essential","group":"embedded"},
+        {"id":"KiCad.KiCad","name":"KiCad","tier":"essential","group":"electronics"},
+        {"id":"FreeCAD.FreeCAD","name":"FreeCAD","tier":"essential","group":"cad"},
+        {"id":"Python.Python.3.13","name":"Python 3","tier":"essential","group":"programming","health_check":["python","--version"]},
+        {"id":"Microsoft.VisualStudioCode","name":"Visual Studio Code","tier":"recommended","group":"programming"},
+        {"id":"Git.Git","name":"Git","tier":"recommended","group":"version-control","health_check":["git","--version"]}
+      ]
+    },
+    {
+      "id": "electronics-engineering",
+      "name": "Ingeniería Electrónica",
+      "description": "Diseño electrónico, PCB, microcontroladores, programación y automatización.",
+      "packages": [
+        {"id":"KiCad.KiCad","name":"KiCad","tier":"essential","group":"electronics"},
+        {"id":"ArduinoSA.IDE.stable","name":"Arduino IDE","tier":"essential","group":"embedded"},
+        {"id":"Python.Python.3.13","name":"Python 3","tier":"essential","group":"programming","health_check":["python","--version"]},
+        {"id":"Microsoft.VisualStudioCode","name":"Visual Studio Code","tier":"recommended","group":"programming"},
+        {"id":"Git.Git","name":"Git","tier":"recommended","group":"version-control","health_check":["git","--version"]},
+        {"id":"FreeCAD.FreeCAD","name":"FreeCAD","tier":"specialized","group":"cad"}
+      ]
+    },
+    {
+      "id": "data-science",
+      "name": "Ciencia de Datos",
+      "description": "Python, R, entornos reproducibles, control de versiones y análisis estadístico.",
+      "packages": [
+        {"id":"Python.Python.3.13","name":"Python 3","tier":"essential","group":"data","health_check":["python","--version"]},
+        {"id":"Anaconda.Miniconda3","name":"Miniconda","tier":"essential","group":"environments"},
+        {"id":"Microsoft.VisualStudioCode","name":"Visual Studio Code","tier":"essential","group":"programming"},
+        {"id":"Git.Git","name":"Git","tier":"essential","group":"version-control","health_check":["git","--version"]},
+        {"id":"RProject.R","name":"R","tier":"recommended","group":"statistics","health_check":["R","--version"]},
+        {"id":"Posit.RStudio","name":"RStudio","tier":"recommended","group":"statistics"},
+        {"id":"Docker.DockerDesktop","name":"Docker Desktop","tier":"specialized","group":"containers","requires":{"ram_gb":8,"virtualization":true}}
+      ]
+    }
+  ]
+}
