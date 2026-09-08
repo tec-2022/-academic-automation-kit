@@ -7,7 +7,7 @@
 
 > Herramienta creada y mantenida por **Fredy Luis Vidalón Lozano** para preparar, configurar, diagnosticar y automatizar computadoras en contextos universitarios.
 
-**Academic Automation Kit** ya no es solo una colección de scripts. Su núcleo v0.4 incluye perfiles por carrera, auditoría del equipo antes de instalar, validación de paquetes mediante Winget, limpieza segura de temporales, comprobaciones posteriores a la instalación, diagnóstico de conflictos y una capa de IA local opcional que nunca sustituye al motor determinista.
+**Academic Automation Kit** incluye una interfaz gráfica funcional para Windows, perfiles por carrera, auditoría del equipo antes de instalar, validación de paquetes mediante Winget, limpieza segura de temporales, comprobaciones posteriores a la instalación, diagnóstico de conflictos y una capa de IA local opcional que nunca sustituye al motor determinista.
 
 ## Autor
 
@@ -16,9 +16,36 @@ Creador y desarrollador de Academic Automation Kit.
 
 Repositorio: `tec-2022/-academic-automation-kit`
 
+## Interfaz gráfica
+
+La aplicación de escritorio ya está implementada con Python + Tkinter y no requiere dependencias gráficas externas. En Windows puede abrirse con doble clic en:
+
+```text
+Abrir-Academic-Toolkit.bat
+```
+
+O desde terminal:
+
+```powershell
+python start_gui.py
+```
+
+La interfaz incluye funciones reales, no tarjetas vacías:
+
+- **Inicio:** accesos directos y diagnóstico básico del equipo.
+- **Preparar mi PC:** selección de carrera, niveles de software, auditoría de Winget, compatibilidad, instalación y health checks.
+- **Programas:** búsqueda real en Winget, instalación y desinstalación del paquete seleccionado.
+- **Limpieza:** vista previa de temporales seguros antes de eliminarlos.
+- **Asistente:** predicción local inmediata y uso opcional de IA local mediante Ollama cuando las reglas no bastan.
+- **IA local opcional:** valida Ollama en Winget antes de instalar y descarga el modelo ligero solo con confirmación del usuario.
+
+Las operaciones lentas se ejecutan en segundo plano para que la ventana no quede congelada durante búsquedas, auditorías o instalaciones.
+
 ## Preparar una PC según la carrera
 
 El flujo principal es: **detectar → auditar → mostrar plan → confirmar → preparar → instalar → verificar**.
+
+También puede usarse por terminal:
 
 ```powershell
 python scripts/labs/career-pc-prep.py careers
@@ -90,9 +117,12 @@ El launcher de terminal también expone `career-pc-prep` en la categoría `pc-pr
 
 ```text
 .
+├─ Abrir-Academic-Toolkit.bat    # Lanzador de Windows
+├─ start_gui.py                  # Entrada de la app gráfica
 ├─ toolkit.py
 ├─ catalog.json
 ├─ academic_toolkit/
+│  ├─ desktop_app.py
 │  ├─ careers.json
 │  ├─ career_engine.py
 │  ├─ health_checks.py
