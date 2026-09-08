@@ -1,0 +1,20 @@
+{
+  "name": "academic-automation-kit",
+  "version": "0.2.0",
+  "audiences": ["students", "teachers", "researchers"],
+  "categories": ["organization", "grading", "attendance", "research", "data", "labs"],
+  "automations": [
+    {"id":"semester-folder-builder","audience":"students","category":"organization","path":"scripts/students/semester-folder-builder.ps1","runtime":"PowerShell 5.1+"},
+    {"id":"assignment-renamer","audience":"students","category":"organization","path":"scripts/students/assignment-renamer.py","runtime":"Python 3.10+"},
+    {"id":"deadline-planner","audience":"students","category":"organization","path":"scripts/students/deadline-planner.py","runtime":"Python 3.10+"},
+    {"id":"gradebook-calculator","audience":"teachers","category":"grading","path":"scripts/teachers/gradebook-calculator.py","runtime":"Python 3.10+"},
+    {"id":"attendance-summary","audience":"teachers","category":"attendance","path":"scripts/teachers/attendance-summary.py","runtime":"Python 3.10+"},
+    {"id":"random-team-maker","audience":"teachers","category":"organization","path":"scripts/teachers/random-team-maker.py","runtime":"Python 3.10+"},
+    {"id":"rubric-generator","audience":"teachers","category":"grading","path":"scripts/teachers/rubric-generator.py","runtime":"Python 3.10+"},
+    {"id":"citation-deduplicator","audience":"both","category":"research","path":"scripts/research/citation-deduplicator.py","runtime":"Python 3.10+"},
+    {"id":"literature-matrix","audience":"both","category":"research","path":"scripts/research/literature-matrix.py","runtime":"Python 3.10+"},
+    {"id":"csv-cleaner","audience":"both","category":"data","path":"scripts/data/csv-cleaner.py","runtime":"Python 3.10+"},
+    {"id":"student-data-anonymizer","audience":"both","category":"data","path":"scripts/data/student-data-anonymizer.py","runtime":"Python 3.10+"},
+    {"id":"mysql-smart-setup","audience":"both","category":"labs","path":"scripts/labs/mysql-smart-setup","runtime":"Windows PowerShell"}
+  ]
+}
