@@ -1,0 +1,37 @@
+name: Error en un script
+about: Reporta un comportamiento incorrecto o inesperado
+labels: []
+body:
+  - type: input
+    id: script
+    attributes:
+      label: Script
+      placeholder: gradebook-calculator.py
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Entorno
+      placeholder: Windows 11 / Python 3.12
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      description: Usa datos ficticios. No publiques nombres, matrículas, credenciales o calificaciones reales.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Resultado observado
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado
+    validations:
+      required: true
