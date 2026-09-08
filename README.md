@@ -5,9 +5,16 @@
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue.svg)
 
-> Automatizaciones abiertas para ahorrar tiempo en tareas repetitivas de estudiantes, docentes e investigadores universitarios.
+> Herramienta creada y mantenida por **Fredy Luis Vidalón Lozano** para facilitar la preparación, configuración, diagnóstico y automatización de computadoras en contextos universitarios.
 
-**Academic Automation Kit** reúne scripts pequeños, auditables y reutilizables para organización académica, evaluación, asistencia, investigación, limpieza de datos y preparación de laboratorios. La prioridad es que cada herramienta sea fácil de entender, segura por defecto y útil incluso para personas que no se dedican a programación.
+**Academic Automation Kit** reúne scripts, perfiles y utilidades auditables para preparar equipos según la carrera, instalar software, detectar conflictos, reparar configuraciones y simplificar tareas técnicas para personas con o sin experiencia. La prioridad es que cada herramienta sea fácil de entender, segura por defecto y útil en situaciones reales.
+
+## Autor
+
+**Fredy Luis Vidalón Lozano**  
+Creador y desarrollador de Academic Automation Kit.
+
+Repositorio: `tec-2022/-academic-automation-kit`
 
 ## Inicio rápido
 
@@ -56,6 +63,7 @@ Consulta [`docs/USAGE.md`](docs/USAGE.md) para más ejemplos.
 .
 ├─ toolkit.py                    # Launcher central
 ├─ catalog.json                  # Catálogo legible por máquinas
+├─ academic_toolkit/             # Motor de plataforma
 ├─ scripts/
 │  ├─ students/
 │  ├─ teachers/
@@ -77,7 +85,7 @@ Consulta [`docs/USAGE.md`](docs/USAGE.md) para más ejemplos.
 
 Los scripts que modifican el sistema validan el estado previo, usan mínimos privilegios y evitan exponer servicios a Internet por defecto. Los scripts de datos no suben información estudiantil a servicios externos. Los ejemplos contienen datos ficticios.
 
-La IA, cuando se incorpore a una automatización, será **opcional** y funcionará como capa de diagnóstico o explicación. No tendrá una ruta para ejecutar comandos arbitrarios con privilegios.
+La IA será opcional y funcionará como capa de interpretación, diagnóstico y asistencia. Las acciones críticas seguirán pasando por un motor determinista y validado.
 
 ## Calidad
 
@@ -91,10 +99,6 @@ Cada push ejecuta GitHub Actions en Linux y Windows para:
 
 Se aceptan automatizaciones útiles para educación superior siempre que incluyan validaciones, documentación, ejemplo de uso y no contengan datos personales ni secretos. Consulta [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-## Roadmap
-
-El siguiente nivel contempla un launcher gráfico, más herramientas para evaluación e investigación, preparación de laboratorios y asistencia de IA local mediante un flujo seguro. Consulta [`docs/ROADMAP.md`](docs/ROADMAP.md).
-
 ## Licencia
 
-MIT © 2026 Fredy Luis Vidalón Lozano.
+MIT © 2026 **Fredy Luis Vidalón Lozano**.
