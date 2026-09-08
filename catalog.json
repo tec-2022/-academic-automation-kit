@@ -1,9 +1,10 @@
 {
   "name": "academic-automation-kit",
-  "version": "0.2.0",
-  "audiences": ["students", "teachers", "researchers"],
-  "categories": ["organization", "grading", "attendance", "research", "data", "labs"],
+  "version": "0.4.0",
+  "audiences": ["students", "teachers", "researchers", "general"],
+  "categories": ["organization", "grading", "attendance", "research", "data", "labs", "pc-preparation"],
   "automations": [
+    {"id":"career-pc-prep","audience":"general","category":"pc-preparation","path":"scripts/labs/career-pc-prep.py","runtime":"Python 3.10+ / Windows","description":"Audita, limpia temporales seguros y prepara la PC según una carrera con paquetes verificados por Winget."},
     {"id":"semester-folder-builder","audience":"students","category":"organization","path":"scripts/students/semester-folder-builder.ps1","runtime":"PowerShell 5.1+"},
     {"id":"assignment-renamer","audience":"students","category":"organization","path":"scripts/students/assignment-renamer.py","runtime":"Python 3.10+"},
     {"id":"deadline-planner","audience":"students","category":"organization","path":"scripts/students/deadline-planner.py","runtime":"Python 3.10+"},
