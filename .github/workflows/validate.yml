@@ -13,7 +13,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile Python scripts
-        run: python -m compileall scripts toolkit.py tests
+        run: python -m compileall academic_toolkit scripts toolkit.py tests
+      - name: Validate career profile JSON
+        run: python -m json.tool academic_toolkit/careers.json > /dev/null
       - name: Run smoke tests
         run: python -m unittest discover -s tests -v
 
