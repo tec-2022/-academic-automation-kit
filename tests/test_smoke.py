@@ -8,6 +8,10 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from academic_toolkit.career_engine import build_plan, list_careers, load_careers, validate_catalog
 
 
 def run_script(relative: str, *args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
@@ -104,6 +108,28 @@ class AcademicAutomationSmokeTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("deadline-planner", result.stdout)
+
+    def test_career_catalog_is_valid_and_substantial(self) -> None:
+        data = load_careers()
+        validate_catalog(data)
+        careers = list_careers()
+        self.assertGreaterEqual(len(careers), 7)
+        ids = {item["id"] for item in careers}
+        self.assertIn("informatics-engineering", ids)
+        self.assertIn("civil-engineering", ids)
+        self.assertIn("mechatronics-engineering", ids)
+
+    def test_career_plan_works_without_network(self) -> None:
+        plan = build_plan("industrial-engineering", ["essential"], online_audit=False)
+        self.assertEqual(plan["career"]["name"], "Ingeniería Industrial")
+        self.assertTrue(plan["items"])
+        self.assertTrue(all(item["tier"] == "essential" for item in plan["items"]))
+
+    def test_career_cli_lists_profiles(self) -> None:
+        result = run_script("scripts/labs/career-pc-prep.py", "careers")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Ingeniería Informática", result.stdout)
+        self.assertIn("Ingeniería Electrónica", result.stdout)
 
 
 if __name__ == "__main__":
