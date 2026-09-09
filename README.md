@@ -1,5 +1,9 @@
 # Academic Automation Kit
 
+**Español** · [English](README.en.md) · [Patrocinar](https://github.com/sponsors/tec-2022)
+
+[![Demostración de Academic Automation Kit](docs/media/demo.gif)](docs/media/demo.mp4)
+
 [![Validate scripts](https://github.com/tec-2022/-academic-automation-kit/actions/workflows/validate.yml/badge.svg)](https://github.com/tec-2022/-academic-automation-kit/actions/workflows/validate.yml)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)
