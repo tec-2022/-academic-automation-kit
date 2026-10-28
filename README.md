@@ -11,7 +11,7 @@
 
 > Herramienta creada y mantenida por **Fredy Luis Vidalón Lozano** para preparar, configurar, diagnosticar y automatizar computadoras en contextos universitarios.
 
-**Academic Automation Kit** incluye una interfaz gráfica funcional para Windows, perfiles por carrera, auditoría del equipo antes de instalar, validación de paquetes mediante Winget, limpieza segura de temporales, comprobaciones posteriores a la instalación, diagnóstico de conflictos y una capa de IA local opcional que nunca sustituye al motor determinista.
+**Academic Automation Kit** incluye una interfaz gráfica para Windows, perfiles por carrera, auditoría del equipo antes de instalar, validación de paquetes mediante Winget, limpieza opcional de caché propia, comprobaciones posteriores a la instalación, diagnóstico de conflictos y una capa de IA local opcional que nunca sustituye al motor determinista.
 
 ## Autor
 
@@ -39,7 +39,7 @@ La interfaz incluye funciones reales, no tarjetas vacías:
 - **Inicio:** accesos directos y diagnóstico básico del equipo.
 - **Preparar mi PC:** selección de carrera, niveles de software, auditoría de Winget, compatibilidad, instalación y health checks.
 - **Programas:** búsqueda real en Winget, instalación y desinstalación del paquete seleccionado.
-- **Limpieza:** vista previa de temporales seguros antes de eliminarlos.
+- **Limpieza:** vista previa y borrado explícito solo de archivos .tmp/.cache antiguos creados dentro de la carpeta temporal de esta aplicación.
 - **Asistente:** predicción local inmediata y uso opcional de IA local mediante Ollama cuando las reglas no bastan.
 - **IA local opcional:** valida Ollama en Winget antes de instalar y descarga el modelo ligero solo con confirmación del usuario.
 
@@ -75,13 +75,15 @@ Cada perfil separa herramientas en `essential`, `recommended` y `specialized`. L
 
 ## Preparación segura
 
-Antes de una preparación completa, el motor puede revisar y limpiar exclusivamente ubicaciones temporales seguras. No elimina Documentos, Descargas, Escritorio, perfiles de navegador ni carpetas arbitrarias de aplicaciones. La limpieza muestra primero una estimación y después procesa únicamente ubicaciones permitidas.
+La preparación del equipo **no borra temporales automáticamente**. La sección Limpieza opera únicamente sobre archivos `.tmp` y `.cache` de al menos siete días dentro de la carpeta de caché propia de Academic Automation Kit; nunca recorre las carpetas Temp generales de Windows ni elimina subdirectorios. Para limpieza general usa **Configuración de Windows → Sistema → Almacenamiento**.
+
+La limpieza propia también es opcional en CLI: `python scripts/labs/career-pc-prep.py prepare informatics-engineering --clean-cache`. Sin esa opción no se realiza ninguna limpieza.
 
 Para instalaciones relevantes, el resultado de Winget no se considera suficiente: cuando existe un `health_check`, el toolkit intenta ejecutar la herramienta instalada (`python --version`, `git --version`, `node --version`, etc.) y marca **OK** o **NECESITA ATENCIÓN**.
 
 ## MySQL y conflictos reales
 
-El perfil de informática integra MySQL como paquete diagnosticable. El módulo MySQL Smart Setup permanece separado porque antes de configurarlo debe revisar XAMPP/MariaDB/MySQL existentes, servicios, puertos y exposición de red. El objetivo es no sobrescribir una instalación previa ni asumir que el puerto 3306 está libre.
+El perfil de informática integra MySQL como paquete diagnosticable. El módulo MySQL Smart Setup permanece separado porque antes de configurarlo debe revisar XAMPP/MariaDB/MySQL existentes, servicios, puertos y exposición de red. **Por defecto escucha únicamente en 127.0.0.1**; el acceso LAN requiere la opción explícita `-AllowLan`. No se debe usar como servidor público de Internet.
 
 ## IA local opcional y rápida
 
