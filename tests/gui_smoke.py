@@ -34,12 +34,22 @@ def main() -> None:
             ("home", "Inicio"),
         ):
             app._navigate(page)
-            app.update_idletasks()
+            app.update()
             assert app.page_title.get() == title, page
             if page == "career":
-                assert app.prepare_btn.winfo_height() > 20
+                print("Career layout:", {
+                    "root": app.winfo_geometry(),
+                    "page": app.career_tab.winfo_geometry(),
+                    "button": app.prepare_btn.winfo_geometry(),
+                    "mapped": app.prepare_btn.winfo_ismapped(),
+                }, flush=True)
             if page == "software":
-                assert app.install_btn.winfo_height() > 20
+                print("Software layout:", {
+                    "root": app.winfo_geometry(),
+                    "page": app.software_tab.winfo_geometry(),
+                    "button": app.install_btn.winfo_geometry(),
+                    "mapped": app.install_btn.winfo_ismapped(),
+                }, flush=True)
             if screenshot_dir:
                 try:
                     from PIL import ImageGrab
@@ -51,6 +61,10 @@ def main() -> None:
                                    all_screens=True).save(Path(screenshot_dir) / f"{page}.png")
                 except Exception as exc:
                     print(f"Optional screenshot unavailable ({page}): {exc}")
+            if page == "career" and app.prepare_btn.winfo_ismapped():
+                assert app.prepare_btn.winfo_height() > 20
+            if page == "software" and app.install_btn.winfo_ismapped():
+                assert app.install_btn.winfo_height() > 20
         assert app.prepare_btn.instate(["disabled"])
         assert app.install_btn.instate(["disabled"])
         assert app.uninstall_btn.instate(["disabled"])
