@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import tempfile
 import time
+import stat
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -31,7 +32,14 @@ def app_temp_root() -> Path:
 
 def _is_link_or_junction(path: Path) -> bool:
     # Windows junctions are not always reported by Path.is_symlink().
-    return path.is_symlink() or bool(getattr(path, "is_junction", lambda: False)())
+    if path.is_symlink() or bool(getattr(path, "is_junction", lambda: False)()):
+        return True
+    try:
+        flags = getattr(path.lstat(), "st_file_attributes", 0)
+        return bool(flags & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
+    except OSError:
+        # Fail closed when link metadata cannot be inspected.
+        return True
 
 
 def safe_temp_roots() -> list[Path]:
