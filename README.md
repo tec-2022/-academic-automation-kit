@@ -1,8 +1,12 @@
 # Academic Automation Kit
 
+<img src="assets/app-icon.png" alt="Academic Automation Kit" width="88" />
+
 **Español** · [English](README.en.md) · [Patrocinar](https://github.com/sponsors/tec-2022)
 
-[![Demostración de Academic Automation Kit](docs/media/demo.gif)](docs/media/demo.mp4)
+[![Presentación de Academic Automation Kit](docs/media/demo.gif)](docs/media/demo.mp4)
+
+> El video enlazado es una presentación promocional, no una grabación de la interfaz. La documentación de diseño y el recorrido de pantallas están en [docs/UI_DESIGN.md](docs/UI_DESIGN.md).
 
 [![Validate scripts](https://github.com/tec-2022/-academic-automation-kit/actions/workflows/validate.yml/badge.svg)](https://github.com/tec-2022/-academic-automation-kit/actions/workflows/validate.yml)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -22,7 +26,7 @@ Repositorio: `tec-2022/-academic-automation-kit`
 
 ## Interfaz gráfica
 
-La aplicación de escritorio ya está implementada con Python + Tkinter y no requiere dependencias gráficas externas. En Windows puede abrirse con doble clic en:
+La aplicación de escritorio está implementada con Python + Tkinter y no requiere dependencias gráficas externas. Su interfaz utiliza navegación lateral y un sistema visual consistente: fondos claros, paneles de contenido, acciones primarias, estados de seguridad y progreso visible. En Windows puede abrirse con doble clic en:
 
 ```text
 Abrir-Academic-Toolkit.bat
@@ -36,14 +40,15 @@ python start_gui.py
 
 La interfaz incluye funciones reales, no tarjetas vacías:
 
-- **Inicio:** accesos directos y diagnóstico básico del equipo.
-- **Preparar mi PC:** selección de carrera, niveles de software, auditoría de Winget, compatibilidad, instalación y health checks.
-- **Programas:** búsqueda real en Winget, instalación y desinstalación del paquete seleccionado.
-- **Limpieza:** vista previa y borrado explícito solo de archivos .tmp/.cache antiguos creados dentro de la carpeta temporal de esta aplicación.
+- **Inicio:** panel principal, accesos directos y diagnóstico básico del equipo.
+- **Preparar mi PC:** selección de carrera, niveles de software, auditoría de Winget, compatibilidad e instalación con progreso por paquete. Se puede solicitar detener la cola *después* del instalador en curso.
+- **Programas:** búsqueda real en Winget con nombre e identificador, selección explícita, instalación y desinstalación del paquete seleccionado.
+- **Mantenimiento:** vista previa y borrado explícito solo de archivos .tmp/.cache antiguos creados dentro de la carpeta temporal de esta aplicación.
 - **Asistente:** predicción local inmediata y uso opcional de IA local mediante Ollama cuando las reglas no bastan.
 - **IA local opcional:** valida Ollama en Winget antes de instalar y descarga el modelo ligero solo con confirmación del usuario.
 
 Las operaciones lentas se ejecutan en segundo plano para que la ventana no quede congelada durante búsquedas, auditorías o instalaciones.
+La barra inferior distingue operaciones indeterminadas de la preparación por carrera, que informa cuántos paquetes se han procesado. El panel lateral ofrece atajos de teclado **Ctrl+1 a Ctrl+5**.
 
 ## Preparar una PC según la carrera
 
@@ -75,7 +80,7 @@ Cada perfil separa herramientas en `essential`, `recommended` y `specialized`. L
 
 ## Preparación segura
 
-La preparación del equipo **no borra temporales automáticamente**. La sección Limpieza opera únicamente sobre archivos `.tmp` y `.cache` de al menos siete días dentro de la carpeta de caché propia de Academic Automation Kit; nunca recorre las carpetas Temp generales de Windows ni elimina subdirectorios. Para limpieza general usa **Configuración de Windows → Sistema → Almacenamiento**.
+La preparación del equipo **no borra temporales automáticamente**. La sección Mantenimiento opera únicamente sobre archivos `.tmp` y `.cache` de al menos siete días dentro de la carpeta de caché propia de Academic Automation Kit; nunca recorre las carpetas Temp generales de Windows ni elimina subdirectorios. Para limpieza general usa **Configuración de Windows → Sistema → Almacenamiento**.
 
 La limpieza propia también es opcional en CLI: `python scripts/labs/career-pc-prep.py prepare informatics-engineering --clean-cache`. Sin esa opción no se realiza ninguna limpieza.
 
@@ -151,7 +156,7 @@ El launcher de terminal también expone `career-pc-prep` en la categoría `pc-pr
 
 Los cambios de sistema deben validarse antes de ejecutarse, operar con mínimos privilegios y evitar abrir servicios a Internet por defecto. Los ejemplos no contienen información académica real y la IA no puede convertirse en un ejecutor privilegiado de comandos generados.
 
-GitHub Actions compila `academic_toolkit`, scripts y tests, valida el JSON de perfiles, ejecuta smoke tests y analiza la sintaxis de PowerShell en Windows.
+GitHub Actions compila `academic_toolkit`, scripts y tests, valida el JSON de perfiles, ejecuta smoke tests y analiza la sintaxis de PowerShell en Windows. También comprueba la construcción de las cinco pantallas y los estados iniciales de botones y progreso en Windows.
 
 ## Licencia
 

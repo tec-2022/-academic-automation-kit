@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>Academic Automation Kit — app icon</title>
+  <rect width="256" height="256" rx="56" fill="#13243A"/>
+  <rect x="45" y="57" width="166" height="120" rx="16" fill="#243D5D" stroke="#DDEAFF" stroke-width="11"/>
+  <path d="M75 94 L101 117 L75 140" fill="none" stroke="#68A5FF" stroke-linecap="round" stroke-linejoin="round" stroke-width="13"/>
+  <path d="M114 141 H169" stroke="#F0F6FF" stroke-linecap="round" stroke-width="12"/>
+  <path d="M104 197 H152 M128 177 V197" stroke="#DDEAFF" stroke-linecap="round" stroke-width="12"/>
+</svg>

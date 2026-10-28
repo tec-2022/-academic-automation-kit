@@ -46,6 +46,9 @@ jobs:
       - name: Import desktop application
         shell: pwsh
         run: python -c "from academic_toolkit.desktop_app import DesktopApp; print('desktop GUI import OK')"
+      - name: Validate desktop navigation and progress
+        shell: pwsh
+        run: python tests/gui_smoke.py
       - name: Run Python safety and smoke tests on Windows
         shell: pwsh
         run: python -m unittest discover -s tests -v

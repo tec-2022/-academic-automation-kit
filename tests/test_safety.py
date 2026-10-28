@@ -145,6 +145,7 @@ class DesktopSafetyTests(unittest.TestCase):
 
     def test_prepare_rejects_stale_career_plan(self) -> None:
         fake = Mock()
+        fake._install_in_progress = False
         fake.current_plan = {"career": {"id": "old"}, "tiers": ["essential"], "items": []}
         fake.career_by_name = {"Civil": {"id": "civil"}}
         fake.career_var.get.return_value = "Civil"
