@@ -1,16 +1,21 @@
-"""Safe Windows preparation helpers for Academic Automation Kit.
+"""Conservative cleanup of temporary files owned by Academic Automation Kit.
 
-Created by Fredy Luis Vidalón Lozano.
-Only cleans user/system temporary locations; it never touches Documents,
-Downloads, Desktop, browser profiles or arbitrary application data.
+Never enumerate or delete arbitrary files from the user's or Windows' Temp
+directories. General Windows cleanup belongs to Storage Sense, not this app.
 """
 from __future__ import annotations
-import ctypes
-import os
-import shutil
+
 import tempfile
+import time
+import stat
 from dataclasses import dataclass
 from pathlib import Path
+
+
+APP_TEMP_DIR = "AcademicAutomationKit"
+MANAGED_SUFFIXES = frozenset({".tmp", ".cache"})
+MIN_AGE_DAYS = 7
+
 
 @dataclass
 class CleanupResult:
@@ -20,53 +25,63 @@ class CleanupResult:
     bytes_freed: int = 0
 
 
-def is_admin() -> bool:
+def app_temp_root() -> Path:
+    """The only directory this app may clean, never the system Temp root."""
+    return Path(tempfile.gettempdir()) / APP_TEMP_DIR
+
+
+def _is_link_or_junction(path: Path) -> bool:
+    # Windows junctions are not always reported by Path.is_symlink().
+    if path.is_symlink() or bool(getattr(path, "is_junction", lambda: False)()):
+        return True
     try:
-        return bool(ctypes.windll.shell32.IsUserAnAdmin())
-    except Exception:
-        return False
+        flags = getattr(path.lstat(), "st_file_attributes", 0)
+        return bool(flags & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
+    except OSError:
+        # Fail closed when link metadata cannot be inspected.
+        return True
 
 
 def safe_temp_roots() -> list[Path]:
-    roots = [Path(tempfile.gettempdir())]
-    windir = os.environ.get("WINDIR")
-    if windir and is_admin():
-        roots.append(Path(windir) / "Temp")
-    # Preserve order while removing duplicates.
-    return list(dict.fromkeys(p.resolve() for p in roots if p.exists()))
+    root = app_temp_root()
+    if not root.is_dir() or _is_link_or_junction(root):
+        return []
+    return [root]
 
 
-def clean_temporaries(dry_run: bool = True) -> CleanupResult:
+def clean_temporaries(dry_run: bool = True, *, min_age_days: int = MIN_AGE_DAYS) -> CleanupResult:
+    """Remove only stale, regular, top-level app-owned .tmp/.cache files.
+
+    `removed` and `bytes_freed` describe eligible files during a dry run and
+    successfully removed files during execution. Directories and links are
+    deliberately never removed or followed.
+    """
+    if min_age_days < 1:
+        raise ValueError("min_age_days must be at least one")
+
     result = CleanupResult()
+    cutoff = time.time() - min_age_days * 86400
     for root in safe_temp_roots():
-        for item in root.iterdir():
+        try:
+            entries = list(root.iterdir())
+        except OSError:
+            result.failed += 1
+            continue
+
+        for item in entries:
             result.scanned += 1
             try:
-                size = _size(item)
+                if (_is_link_or_junction(item) or not item.is_file()
+                        or item.suffix.lower() not in MANAGED_SUFFIXES):
+                    continue
+                stats = item.stat()
+                if stats.st_mtime > cutoff:
+                    continue
                 if not dry_run:
-                    if item.is_dir() and not item.is_symlink():
-                        shutil.rmtree(item)
-                    else:
-                        item.unlink()
+                    item.unlink()
                 result.removed += 1
-                result.bytes_freed += size
-            except (PermissionError, OSError):
-                # Locked/current temp files are expected and are left untouched.
+                result.bytes_freed += stats.st_size
+            except OSError:
+                # Files in use or with changed permissions remain untouched.
                 result.failed += 1
     return result
-
-
-def _size(path: Path) -> int:
-    if path.is_file() or path.is_symlink():
-        try:
-            return path.stat().st_size
-        except OSError:
-            return 0
-    total = 0
-    for root, _, files in os.walk(path, onerror=lambda _: None):
-        for name in files:
-            try:
-                total += (Path(root) / name).stat().st_size
-            except OSError:
-                pass
-    return total

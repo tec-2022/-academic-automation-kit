@@ -32,11 +32,12 @@ def main() -> int:
     plan.add_argument("--tier", action="append", choices=["essential", "recommended", "specialized"])
     plan.add_argument("--offline", action="store_true", help="No consulta Winget")
 
-    prepare = sub.add_parser("prepare", help="Limpia temporales seguros, audita e instala paquetes válidos")
+    prepare = sub.add_parser("prepare", help="Audita e instala paquetes válidos sin limpiar temporales ajenos")
     prepare.add_argument("career")
     prepare.add_argument("--tier", action="append", choices=["essential", "recommended", "specialized"])
     prepare.add_argument("--yes", action="store_true", help="Confirma el plan sin preguntar")
-    prepare.add_argument("--skip-clean", action="store_true")
+    prepare.add_argument("--clean-cache", action="store_true", help="Limpia, con confirmación, solo caché antigua de esta aplicación")
+    prepare.add_argument("--skip-clean", action="store_true", help="Compatibilidad con versiones anteriores (la limpieza ya es opcional)")
 
     args = parser.parse_args()
     if args.command == "careers":
@@ -49,9 +50,9 @@ def main() -> int:
         print(json.dumps(build_plan(args.career, tiers, online_audit=not args.offline), ensure_ascii=False, indent=2))
         return 0
 
-    if not args.skip_clean:
+    if args.command == "prepare" and args.clean_cache and not args.skip_clean:
         preview = clean_temporaries(dry_run=True)
-        print(f"Temporales seguros detectados: {preview.scanned}; potencialmente liberables: {preview.bytes_freed / (1024**2):.1f} MB")
+        print(f"Caché propia antigua: {preview.removed} archivo(s); potencialmente liberables: {preview.bytes_freed / (1024**2):.1f} MB")
 
     plan_data = build_plan(args.career, tiers, online_audit=True)
     print(f"\nCarrera: {plan_data['career']['name']}")
@@ -78,9 +79,9 @@ def main() -> int:
             print("Cancelado sin cambios.")
             return 0
 
-    if not args.skip_clean:
+    if args.clean_cache and not args.skip_clean:
         cleaned = clean_temporaries(dry_run=False)
-        print(f"Limpieza: {cleaned.removed} elementos procesados; {cleaned.bytes_freed / (1024**2):.1f} MB liberables/procesados.")
+        print(f"Caché propia limpiada: {cleaned.removed} archivo(s); {cleaned.bytes_freed / (1024**2):.1f} MB liberados.")
 
     failed = 0
     career = get_career(args.career)

@@ -9,6 +9,7 @@ import json
 import os
 import platform
 import shutil
+import subprocess
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Iterable
@@ -79,9 +80,7 @@ def get_career(career_id: str) -> dict:
 def detect_device() -> DeviceProfile:
     free = shutil.disk_usage(Path.home()).free / (1024 ** 3)
     ram = _ram_gb()
-    # A portable, non-invasive hint. Full Windows virtualization checks belong
-    # to a platform-specific diagnostic before Docker/VM installation.
-    virtualization_hint = platform.machine().lower() in {"amd64", "x86_64", "arm64"}
+    virtualization_hint = _virtualization_enabled()
     return DeviceProfile(
         os_name=platform.system(),
         architecture=platform.machine(),
@@ -109,20 +108,50 @@ def build_plan(career_id: str, tiers: Iterable[str] = ("essential", "recommended
         items.append(PlanItem(pkg["id"], pkg["name"], pkg["tier"], pkg["group"], available, installed, compatible, reason))
     return {
         "career": {"id": career["id"], "name": career["name"]},
+        "tiers": sorted(selected),
         "device": asdict(device),
         "items": [asdict(item) for item in items],
-        "ready_to_install": device.os_name == "Windows" and device.winget and all(i.compatible for i in items),
+        "ready_to_install": (device.os_name == "Windows" and device.winget
+                             and all(i.compatible and (i.available or i.installed) for i in items)),
     }
 
 
 def _compatible(pkg: dict, device: DeviceProfile) -> tuple[bool, str]:
     req = pkg.get("requires", {})
     required_ram = req.get("ram_gb")
-    if required_ram and device.ram_gb is not None and device.ram_gb < required_ram:
-        return False, f"requires at least {required_ram} GB RAM"
+    if required_ram:
+        if device.ram_gb is None:
+            return False, "RAM could not be verified"
+        if device.ram_gb < required_ram:
+            return False, f"requires at least {required_ram} GB RAM"
+    required_disk = req.get("disk_gb")
+    if required_disk and device.free_disk_gb < required_disk:
+        return False, f"requires at least {required_disk} GB free disk space"
     if req.get("virtualization") and not device.virtualization_hint:
-        return False, "virtualization-capable architecture not detected"
+        return False, "firmware virtualization is disabled or could not be verified"
     return True, ""
+
+
+def _virtualization_enabled() -> bool:
+    """Fail closed unless Windows confirms firmware virtualization is enabled."""
+    if platform.system() != "Windows":
+        return False
+    shell = shutil.which("powershell.exe") or shutil.which("pwsh.exe")
+    if not shell:
+        return False
+    command = (
+        "$p=@(Get-CimInstance Win32_Processor); "
+        "if($p.Count -eq 0){'False'} "
+        "elseif(@($p | Where-Object { $_.VirtualizationFirmwareEnabled -ne $true }).Count -eq 0){'True'} "
+        "else{'False'}"
+    )
+    try:
+        result = subprocess.run([shell, "-NoProfile", "-NonInteractive", "-Command", command],
+                                capture_output=True, text=True, timeout=12,
+                                encoding="utf-8", errors="replace")
+        return result.returncode == 0 and result.stdout.strip().splitlines()[-1:] == ["True"]
+    except (OSError, subprocess.TimeoutExpired):
+        return False
 
 
 def _ram_gb() -> float | None:

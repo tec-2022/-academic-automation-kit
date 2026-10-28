@@ -9,6 +9,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from .desktop_app import APP_NAME, DesktopApp
+from .ui_theme import COLORS, FONT
 
 
 class EnhancedDesktopApp(DesktopApp):
@@ -18,21 +19,37 @@ class EnhancedDesktopApp(DesktopApp):
         super()._build_ui()
 
         self.operation_status = tk.StringVar(value="Listo para trabajar")
-        self.operation_detail = tk.StringVar(value="No hay operaciones en curso.")
+        self.operation_detail = tk.StringVar(value="Sin operaciones en curso")
 
-        panel = ttk.LabelFrame(self, text="Estado de la operación", padding=(12, 8))
-        panel.pack(fill="x", padx=20, pady=(0, 10))
+        panel = self._panel(self.status_mount, padx=16, pady=10)
+        panel.pack(fill="x")
 
-        header = ttk.Frame(panel)
+        header = ttk.Frame(panel, style="Surface.TFrame")
         header.pack(fill="x")
-        ttk.Label(header, textvariable=self.operation_status, font=("Segoe UI", 10, "bold")).pack(side="left")
-        ttk.Label(header, textvariable=self.operation_detail).pack(side="right")
+        tk.Label(header, textvariable=self.operation_status, bg=COLORS["surface"],
+                 fg=COLORS["text"], font=(FONT, 10, "bold")).pack(side="left")
+        tk.Label(header, textvariable=self.operation_detail, bg=COLORS["surface"],
+                 fg=COLORS["muted"], font=(FONT, 9)).pack(side="right")
 
-        self.operation_progress = ttk.Progressbar(panel, mode="indeterminate", length=700)
-        self.operation_progress.pack(fill="x", pady=(7, 0))
+        self.operation_progress = ttk.Progressbar(panel, mode="indeterminate")
+        # Hidden while idle: a stationary indeterminate bar looks like an
+        # unfinished operation even when the app is ready.
 
         # Keep the existing footer status synchronized with the more visible strip.
         self._operation_running = False
+        self._operation_determinate = False
+
+    def _progress_begin(self, total: int) -> None:
+        self.operation_progress.stop()
+        self._operation_running = False
+        self._operation_determinate = True
+        self.operation_progress.configure(mode="determinate", maximum=max(1, total), value=0)
+        self.operation_progress.pack(fill="x", pady=(8, 0))
+        self.operation_detail.set(f"0 de {total} programas procesados")
+
+    def _progress_step(self, completed: int, total: int, package: str) -> None:
+        self.operation_progress.configure(mode="determinate", maximum=max(1, total), value=completed)
+        self.operation_detail.set(f"{completed} de {total} procesados · Último: {package}")
 
     def _busy(self, text: str) -> None:
         """Show long-running work in a persistent, visible progress strip."""
@@ -45,15 +62,22 @@ class EnhancedDesktopApp(DesktopApp):
         idle = normalized in {"listo", "listo.", "ready"}
         if idle:
             self.operation_status.set("Listo")
-            self.operation_detail.set("Operación finalizada.")
+            if not self._operation_determinate:
+                self.operation_detail.set("Operación finalizada")
             if self._operation_running:
                 self.operation_progress.stop()
                 self._operation_running = False
+            self.operation_progress.pack_forget()
             self.configure(cursor="")
         else:
+            if self._operation_determinate and not self._install_in_progress:
+                self._operation_determinate = False
+                self.operation_progress.configure(mode="indeterminate", value=0)
             self.operation_status.set(text.rstrip("."))
-            self.operation_detail.set("Puedes seguir viendo el estado aquí mientras termina.")
-            if not self._operation_running:
+            if not self._operation_determinate:
+                self.operation_detail.set("Operación en curso")
+            if not self._operation_running and not self._operation_determinate:
+                self.operation_progress.pack(fill="x", pady=(8, 0))
                 self.operation_progress.start(12)
                 self._operation_running = True
             self.configure(cursor="watch")

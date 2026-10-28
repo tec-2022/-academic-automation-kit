@@ -11,6 +11,7 @@ param(
     [ValidatePattern('^[A-Za-z0-9_]{1,32}$')]
     [string]$RemoteUser = 'remoto',
 
+    [switch]$AllowLan,
     [switch]$NoLan,
     [switch]$NoFederated
 )
@@ -19,6 +20,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $RootDir = Join-Path $env:ProgramData 'AcademicAutomationKit\MySQL\instances'
+
+if ($AllowLan -and $NoLan) {
+    throw 'No combines -AllowLan con -NoLan.'
+}
+# Remote access requires explicit opt-in. -NoLan remains for compatibility.
+$lanEnabled = [bool]$AllowLan -and -not [bool]$NoLan
 
 function Write-Step {
     param([string]$Message)
@@ -158,7 +165,7 @@ function New-InstanceDescriptor {
 }
 
 function Write-MyIni {
-    param($Binary, $Instance, [int]$SelectedPort)
+    param($Binary, $Instance, [int]$SelectedPort, [bool]$LanEnabled = $false)
 
     New-Item -ItemType Directory -Path $Instance.Dir -Force | Out-Null
     New-Item -ItemType Directory -Path $Instance.Data -Force | Out-Null
@@ -168,12 +175,13 @@ function Write-MyIni {
     $data = $Instance.Data -replace '\\', '/'
     $errorLog = (Join-Path $Instance.Logs 'error.log') -replace '\\', '/'
 
+    $bindAddress = if ($LanEnabled) { '0.0.0.0' } else { '127.0.0.1' }
     $lines = @(
         '[mysqld]',
         "basedir=$base",
         "datadir=$data",
         "port=$SelectedPort",
-        'bind-address=0.0.0.0',
+        "bind-address=$bindAddress",
         'default-storage-engine=InnoDB',
         'mysqlx=0',
         "log-error=$errorLog"
@@ -185,12 +193,12 @@ function Write-MyIni {
 }
 
 function Set-LanFirewall {
-    param($Instance, [int]$SelectedPort)
+    param($Instance, [int]$SelectedPort, [bool]$LanEnabled = $false)
 
     Get-NetFirewallRule -DisplayName $Instance.Firewall -ErrorAction SilentlyContinue |
         Remove-NetFirewallRule -ErrorAction SilentlyContinue
 
-    if (-not $NoLan) {
+    if ($LanEnabled) {
         New-NetFirewallRule `
             -DisplayName $Instance.Firewall `
             -Direction Inbound `
@@ -240,7 +248,8 @@ function Invoke-MySql {
 
 function Escape-SqlLiteral {
     param([string]$Value)
-    return $Value.Replace("'", "''")
+    # MySQL uses backslash escaping in its default SQL mode.
+    return $Value.Replace('\', '\\').Replace("'", "\'")
 }
 
 if (-not (Test-Administrator)) {
@@ -260,7 +269,10 @@ if ($Port -eq 0) {
     $Port = Get-FreePort
 }
 elseif ($reserved.Contains($Port)) {
-    throw "El puerto $Port está reservado por otra configuración o proceso."
+    $owned = New-InstanceDescriptor -SelectedPort $Port
+    if (-not (Test-Path $owned.State)) {
+        throw "El puerto $Port está reservado por otra configuración o proceso."
+    }
 }
 
 Write-Host "Puerto elegido: $Port" -ForegroundColor Green
@@ -284,8 +296,24 @@ if ((Test-Path $instance.Data) -and -not $alreadyOwned) {
     }
 }
 
-Write-Step 'Escribiendo configuración independiente'
-Write-MyIni -Binary $binary -Instance $instance -SelectedPort $Port
+# Request credentials before creating a server with an initially blank root
+# password. In an existing instance this must be the CURRENT root password.
+$rootLabel = if ($alreadyOwned) { 'Contraseña ROOT actual de esta instancia' } else { 'Nueva contraseña ROOT para esta instancia' }
+$rootSecure = Read-Host $rootLabel -AsSecureString
+$rootPassword = ConvertFrom-SecureStringPlain $rootSecure
+if ([string]::IsNullOrWhiteSpace($rootPassword)) { throw 'La contraseña ROOT no puede estar vacía.' }
+
+$remotePassword = $null
+if ($lanEnabled) {
+    $remoteSecure = Read-Host "Contraseña para el usuario de red $RemoteUser" -AsSecureString
+    $remotePassword = ConvertFrom-SecureStringPlain $remoteSecure
+    if ([string]::IsNullOrWhiteSpace($remotePassword)) { throw 'La contraseña de red no puede estar vacía.' }
+}
+$rootSql = Escape-SqlLiteral $rootPassword
+$remoteSql = if ($lanEnabled) { Escape-SqlLiteral $remotePassword } else { $null }
+
+Write-Step 'Escribiendo configuración local independiente'
+Write-MyIni -Binary $binary -Instance $instance -SelectedPort $Port -LanEnabled:$false
 
 $initialize = -not $alreadyOwned
 if ($initialize) {
@@ -303,8 +331,8 @@ if (-not $service) {
     if ($LASTEXITCODE -ne 0) { throw 'No se pudo crear el servicio de Windows.' }
 }
 
-Write-Step 'Configurando Firewall'
-Set-LanFirewall -Instance $instance -SelectedPort $Port
+Write-Step 'Manteniendo acceso de red cerrado durante la configuración'
+Set-LanFirewall -Instance $instance -SelectedPort $Port -LanEnabled:$false
 
 Write-Step 'Iniciando MySQL'
 $svc = Get-Service -Name $instance.Service -ErrorAction Stop
@@ -315,36 +343,34 @@ if (-not (Wait-Port -SelectedPort $Port)) {
     throw "MySQL no empezó a escuchar en $Port. Revisa $($instance.Logs)\error.log"
 }
 
-$rootSecure = Read-Host 'Contraseña ROOT para esta instancia' -AsSecureString
-$remoteSecure = Read-Host "Contraseña para $RemoteUser" -AsSecureString
-$rootPassword = ConvertFrom-SecureStringPlain $rootSecure
-$remotePassword = ConvertFrom-SecureStringPlain $remoteSecure
-if ([string]::IsNullOrWhiteSpace($rootPassword) -or [string]::IsNullOrWhiteSpace($remotePassword)) {
-    throw 'Las contraseñas no pueden quedar vacías.'
-}
-
-$rootSql = Escape-SqlLiteral $rootPassword
-$remoteSql = Escape-SqlLiteral $remotePassword
-
 if ($initialize) {
     $sql = @"
 ALTER USER 'root'@'localhost' IDENTIFIED BY '$rootSql';
 CREATE DATABASE IF NOT EXISTS ``$Database``;
-CREATE USER IF NOT EXISTS '$RemoteUser'@'%' IDENTIFIED BY '$remoteSql';
-GRANT ALL PRIVILEGES ON ``$Database``.* TO '$RemoteUser'@'%';
-FLUSH PRIVILEGES;
 "@
     [void](Invoke-MySql -MysqlExe $binary.Mysql -SelectedPort $Port -Sql $sql -NoPassword)
 }
 else {
     $sql = @"
 CREATE DATABASE IF NOT EXISTS ``$Database``;
+"@
+    [void](Invoke-MySql -MysqlExe $binary.Mysql -SelectedPort $Port -Sql $sql -Password $rootPassword)
+}
+
+if ($lanEnabled) {
+    # Only create remote credentials after root has been secured locally.
+    $networkSql = @"
 CREATE USER IF NOT EXISTS '$RemoteUser'@'%' IDENTIFIED BY '$remoteSql';
 ALTER USER '$RemoteUser'@'%' IDENTIFIED BY '$remoteSql';
 GRANT ALL PRIVILEGES ON ``$Database``.* TO '$RemoteUser'@'%';
 FLUSH PRIVILEGES;
 "@
-    [void](Invoke-MySql -MysqlExe $binary.Mysql -SelectedPort $Port -Sql $sql -Password $rootPassword)
+    [void](Invoke-MySql -MysqlExe $binary.Mysql -SelectedPort $Port -Sql $networkSql -Password $rootPassword)
+    Write-Step 'Habilitando acceso LAN solicitado explícitamente'
+    Write-MyIni -Binary $binary -Instance $instance -SelectedPort $Port -LanEnabled:$true
+    Restart-Service -Name $instance.Service -Force
+    if (-not (Wait-Port -SelectedPort $Port)) { throw 'El servicio no reinició tras habilitar LAN.' }
+    Set-LanFirewall -Instance $instance -SelectedPort $Port -LanEnabled:$true
 }
 
 Write-Step 'Verificando motores'
@@ -353,15 +379,17 @@ $innodb = Invoke-MySql -MysqlExe $binary.Mysql -SelectedPort $Port -Password $ro
 Write-Host "FEDERATED: $fed"
 Write-Host "InnoDB:    $innodb"
 
+$remoteUserForState = $null
+if ($lanEnabled) { $remoteUserForState = $RemoteUser }
 $state = [ordered]@{
     version = 1
     configuredAt = (Get-Date).ToString('o')
     port = $Port
     serviceName = $instance.Service
     database = $Database
-    remoteUser = $RemoteUser
+    remoteUser = $remoteUserForState
     baseDir = $binary.BaseDir
-    lanEnabled = (-not $NoLan)
+    lanEnabled = $lanEnabled
     federatedEnabled = (-not $NoFederated)
 }
 $state | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $instance.State -Encoding UTF8
