@@ -54,7 +54,7 @@ class DesktopApp(tk.Tk):
         ttk.Label(header, text=APP_NAME, style="Title.TLabel").pack(anchor="w")
         ttk.Label(
             header,
-            text="Prepara, instala, diagnostica y mantiene tu PC sin necesitar conocimientos técnicos.",
+            text="Diagnostica, prepara e instala herramientas con confirmaciones y verificaciones.",
             style="Sub.TLabel",
         ).pack(anchor="w", pady=(3, 0))
 
@@ -94,7 +94,7 @@ class DesktopApp(tk.Tk):
         actions = [
             ("Preparar mi PC para estudiar", "Selecciona tu carrera y revisa qué software necesitas.", 1),
             ("Instalar o quitar un programa", "Busca software disponible mediante Winget.", 2),
-            ("Limpiar archivos temporales", "Revisa primero cuánto puede limpiarse de forma segura.", 3),
+            ("Limpiar caché de la herramienta", "Revisa únicamente archivos temporales propios de esta aplicación.", 3),
             ("Algo no funciona", "Describe el problema en lenguaje normal.", 4),
         ]
         for index, (title, desc, tab_index) in enumerate(actions):
@@ -118,7 +118,7 @@ class DesktopApp(tk.Tk):
         self.career_var = tk.StringVar(value=self.careers[0]["name"] if self.careers else "")
         combo = ttk.Combobox(top, textvariable=self.career_var, values=list(self.career_by_name), state="readonly", width=48)
         combo.grid(row=2, column=0, sticky="w")
-        combo.bind("<<ComboboxSelected>>", lambda _e: self._career_description())
+        combo.bind("<<ComboboxSelected>>", lambda _e: self._career_selection_changed())
         self.career_desc = tk.StringVar()
         ttk.Label(top, textvariable=self.career_desc, wraplength=760).grid(row=3, column=0, sticky="w", pady=(6, 10))
         self._career_description()
@@ -131,7 +131,7 @@ class DesktopApp(tk.Tk):
             "specialized": tk.BooleanVar(value=False),
         }
         for label, key in [("Esencial", "essential"), ("Recomendado", "recommended"), ("Especializado", "specialized")]:
-            ttk.Checkbutton(tiers, text=label, variable=self.tier_vars[key]).pack(side="left", padx=(0, 18))
+            ttk.Checkbutton(tiers, text=label, variable=self.tier_vars[key], command=self._invalidate_plan).pack(side="left", padx=(0, 18))
         ttk.Button(top, text="Analizar mi computadora", style="Primary.TButton", command=self._career_analyze).grid(row=5, column=0, sticky="w")
 
         self.career_tree = ttk.Treeview(self.career_tab, columns=("tier", "state", "compat"), show="tree headings")
@@ -152,6 +152,7 @@ class DesktopApp(tk.Tk):
         self.career_summary = tk.StringVar(value="Analiza el equipo para comenzar.")
         ttk.Label(actions, textvariable=self.career_summary).pack(side="left")
         self.current_plan: dict | None = None
+        self.plan_epoch = 0
 
     def _build_software(self) -> None:
         ttk.Label(self.software_tab, text="Instalar o quitar programas", font=("Segoe UI", 18, "bold")).pack(anchor="w")
@@ -178,10 +179,11 @@ class DesktopApp(tk.Tk):
         ttk.Label(buttons, textvariable=self.software_info).pack(side="left")
 
     def _build_clean(self) -> None:
-        ttk.Label(self.clean_tab, text="Limpieza segura", font=("Segoe UI", 18, "bold")).pack(anchor="w")
+        ttk.Label(self.clean_tab, text="Limpieza de caché propia", font=("Segoe UI", 18, "bold")).pack(anchor="w")
         ttk.Label(
             self.clean_tab,
-            text="Solo revisa ubicaciones temporales. No toca Documentos, Descargas, Escritorio ni perfiles del navegador.",
+            text=("Solo revisa archivos .tmp y .cache de Academic Automation Kit con más de siete días. "
+                  "Para limpiar Windows utiliza Configuración > Sistema > Almacenamiento."),
             wraplength=820,
         ).pack(anchor="w", pady=(5, 18))
         panel = ttk.LabelFrame(self.clean_tab, text="Archivos temporales", style="Card.TLabelframe")
@@ -225,12 +227,23 @@ class DesktopApp(tk.Tk):
                 )
                 self.after(0, lambda: self.home_status.set(text))
             except Exception as exc:
-                self.after(0, lambda: self.home_status.set(f"No se pudo completar el diagnóstico: {exc}"))
+                message = f"No se pudo completar el diagnóstico: {exc}"
+                self.after(0, lambda text=message: self.home_status.set(text))
         threading.Thread(target=job, daemon=True).start()
 
     def _career_description(self) -> None:
         item = self.career_by_name.get(self.career_var.get())
         self.career_desc.set(item["description"] if item else "")
+
+    def _career_selection_changed(self) -> None:
+        self._career_description()
+        self._invalidate_plan()
+
+    def _invalidate_plan(self) -> None:
+        self.plan_epoch += 1
+        self.current_plan = None
+        self.prepare_btn.configure(state="disabled")
+        self.career_summary.set("Selección modificada. Analiza de nuevo antes de instalar.")
 
     def _selected_tiers(self) -> list[str]:
         return [key for key, var in self.tier_vars.items() if var.get()]
@@ -243,14 +256,18 @@ class DesktopApp(tk.Tk):
             return
         self._busy("Analizando programas y compatibilidad...")
         self.prepare_btn.configure(state="disabled")
+        self.current_plan = None
         self.career_tree.delete(*self.career_tree.get_children())
+        self.plan_epoch += 1  # A newer analysis supersedes older background jobs.
+        request_epoch = self.plan_epoch
 
         def job():
             try:
                 plan = build_plan(item["id"], tiers, online_audit=True)
-                self.after(0, lambda: self._show_plan(plan))
+                self.after(0, lambda p=plan, epoch=request_epoch: self._show_plan(p)
+                           if epoch == self.plan_epoch else None)
             except Exception as exc:
-                self.after(0, lambda: self._error(str(exc)))
+                self._schedule_error(exc)
             finally:
                 self.after(0, lambda: self._busy("Listo"))
         threading.Thread(target=job, daemon=True).start()
@@ -279,7 +296,14 @@ class DesktopApp(tk.Tk):
     def _career_prepare(self) -> None:
         if not self.current_plan:
             return
-        installable = [i for i in self.current_plan["items"] if i["compatible"] and i["available"] and not i["installed"]]
+        selected = self.career_by_name.get(self.career_var.get())
+        if (not selected or selected["id"] != self.current_plan["career"]["id"]
+                or set(self._selected_tiers()) != set(self.current_plan["tiers"])):
+            self._invalidate_plan()
+            messagebox.showwarning(APP_NAME, "La selección cambió. Vuelve a analizar antes de instalar.")
+            return
+        plan_snapshot = self.current_plan
+        installable = [i for i in plan_snapshot["items"] if i["compatible"] and i["available"] and not i["installed"]]
         if not installable:
             messagebox.showinfo(APP_NAME, "No hay programas pendientes que puedan instalarse.")
             return
@@ -291,26 +315,28 @@ class DesktopApp(tk.Tk):
 
         def job():
             errors: list[str] = []
-            clean_temporaries(dry_run=False)
-            career = get_career(self.current_plan["career"]["id"])
-            package_meta = {p["id"]: p for p in career["packages"]}
-            installed_meta = []
-            for pkg in installable:
-                self.after(0, lambda n=pkg["name"]: self._busy(f"Instalando {n}..."))
-                try:
-                    if not verify_package(pkg["package_id"]):
-                        errors.append(f"{pkg['name']}: dejó de estar disponible en Winget")
-                        continue
-                    result = install(pkg["package_id"])
-                    if result.returncode != 0 and not is_installed(pkg["package_id"]):
-                        errors.append(f"{pkg['name']}: error {result.returncode}")
-                        continue
-                    installed_meta.append(package_meta[pkg["package_id"]])
-                except Exception as exc:
-                    errors.append(f"{pkg['name']}: {exc}")
-            for check in check_packages(installed_meta):
-                if not check["ok"]:
-                    errors.append(f"{check['name']}: health check pendiente")
+            try:
+                career = get_career(plan_snapshot["career"]["id"])
+                package_meta = {p["id"]: p for p in career["packages"]}
+                installed_meta = []
+                for pkg in installable:
+                    self.after(0, lambda n=pkg["name"]: self._busy(f"Instalando {n}..."))
+                    try:
+                        if not verify_package(pkg["package_id"]):
+                            errors.append(f"{pkg['name']}: dejó de estar disponible en Winget")
+                            continue
+                        result = install(pkg["package_id"])
+                        if result.returncode != 0 and not is_installed(pkg["package_id"]):
+                            errors.append(f"{pkg['name']}: error {result.returncode}")
+                            continue
+                        installed_meta.append(package_meta[pkg["package_id"]])
+                    except Exception as exc:
+                        errors.append(f"{pkg['name']}: {exc}")
+                for check in check_packages(installed_meta):
+                    if not check["ok"]:
+                        errors.append(f"{check['name']}: health check pendiente")
+            except Exception as exc:
+                errors.append(f"La preparación se interrumpió: {exc}")
             self.after(0, lambda: self._finish_prepare(errors))
         threading.Thread(target=job, daemon=True).start()
 
@@ -378,7 +404,7 @@ class DesktopApp(tk.Tk):
                 ok = result.returncode == 0 or (action == "install" and is_installed(package_id))
                 self.after(0, lambda: messagebox.showinfo(APP_NAME, "Operación completada." if ok else f"La operación devolvió código {result.returncode}."))
             except Exception as exc:
-                self.after(0, lambda: self._error(str(exc)))
+                self._schedule_error(exc)
             finally:
                 self.after(0, lambda: self._busy("Listo"))
         threading.Thread(target=job, daemon=True).start()
@@ -391,7 +417,7 @@ class DesktopApp(tk.Tk):
                 mb = result.bytes_freed / (1024 ** 2)
                 self.after(0, lambda: self._show_clean_preview(result.scanned, result.removed, result.failed, mb))
             except Exception as exc:
-                self.after(0, lambda: self._error(str(exc)))
+                self._schedule_error(exc)
             finally:
                 self.after(0, lambda: self._busy("Listo"))
         threading.Thread(target=job, daemon=True).start()
@@ -401,7 +427,7 @@ class DesktopApp(tk.Tk):
         self.clean_btn.configure(state="normal" if removable else "disabled")
 
     def _clean_execute(self) -> None:
-        if not messagebox.askyesno(APP_NAME, "¿Eliminar los archivos temporales detectados? Los archivos bloqueados se dejarán intactos."):
+        if not messagebox.askyesno(APP_NAME, "¿Eliminar solo archivos de caché antiguos de Academic Automation Kit? No se limpiarán temporales de otras aplicaciones."):
             return
         self._busy("Limpiando temporales...")
         def job():
@@ -411,7 +437,7 @@ class DesktopApp(tk.Tk):
                 self.after(0, lambda: messagebox.showinfo(APP_NAME, f"Limpieza finalizada.\n{result.removed} elementos procesados.\n{mb:.1f} MB procesados/liberables."))
                 self.after(0, lambda: self.clean_btn.configure(state="disabled"))
             except Exception as exc:
-                self.after(0, lambda: self._error(str(exc)))
+                self._schedule_error(exc)
             finally:
                 self.after(0, lambda: self._busy("Listo"))
         threading.Thread(target=job, daemon=True).start()
@@ -437,7 +463,8 @@ class DesktopApp(tk.Tk):
                     output += f"\nObjetivo detectado: {target}"
                 self.after(0, lambda: self._assistant_write(output))
             except Exception as exc:
-                self.after(0, lambda: self._assistant_write(f"La IA local no respondió correctamente: {exc}"))
+                message = f"La IA local no respondió correctamente: {exc}"
+                self.after(0, lambda text=message: self._assistant_write(text))
             finally:
                 self.after(0, lambda: self._busy("Listo"))
         threading.Thread(target=job, daemon=True).start()
@@ -483,7 +510,7 @@ class DesktopApp(tk.Tk):
                     raise RuntimeError(f"Winget devolvió código {result.returncode} al instalar Ollama.")
                 self.after(0, self._pull_ai_model)
             except Exception as exc:
-                self.after(0, lambda: self._error(str(exc)))
+                self._schedule_error(exc)
                 self.after(0, lambda: self._busy("Listo"))
         threading.Thread(target=job, daemon=True).start()
 
@@ -500,7 +527,7 @@ class DesktopApp(tk.Tk):
                 self.after(0, lambda: self.ai_status.set(self._get_ai_status()))
                 self.after(0, lambda: messagebox.showinfo(APP_NAME, "IA local instalada. Seguirá siendo opcional y solo se usará cuando las reglas locales no basten."))
             except Exception as exc:
-                self.after(0, lambda: self._error(str(exc)))
+                self._schedule_error(exc)
             finally:
                 self.after(0, lambda: self._busy("Listo"))
         threading.Thread(target=job, daemon=True).start()
@@ -511,6 +538,11 @@ class DesktopApp(tk.Tk):
 
     def _error(self, text: str) -> None:
         messagebox.showerror(APP_NAME, text)
+
+    def _schedule_error(self, exc: Exception) -> None:
+        # Python clears exception variables when an `except` block exits.
+        message = str(exc)
+        self.after(0, lambda text=message: self._error(text))
 
 
 def main() -> int:
