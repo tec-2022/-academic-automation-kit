@@ -61,11 +61,13 @@ def main() -> None:
                                    all_screens=True).save(Path(screenshot_dir) / f"{page}.png")
                 except Exception as exc:
                     print(f"Optional screenshot unavailable ({page}): {exc}")
-            if page == "career" and app.prepare_btn.winfo_ismapped():
+            if page == "career":
+                assert app.prepare_btn.winfo_ismapped(), "El botón Preparar equipo debe ser visible"
                 assert app.prepare_btn.winfo_height() > 20
                 assert (app.prepare_btn.winfo_rooty() + app.prepare_btn.winfo_height()
                         <= app.page_container.winfo_rooty() + app.page_container.winfo_height())
-            if page == "software" and app.install_btn.winfo_ismapped():
+            if page == "software":
+                assert app.install_btn.winfo_ismapped(), "El botón Instalar debe ser visible"
                 assert app.install_btn.winfo_height() > 20
                 assert (app.install_btn.winfo_rooty() + app.install_btn.winfo_height()
                         <= app.page_container.winfo_rooty() + app.page_container.winfo_height())

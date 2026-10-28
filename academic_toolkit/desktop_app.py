@@ -248,7 +248,6 @@ class DesktopApp(tk.Tk):
         self.analyze_btn.pack(side="right")
 
         result = self._panel(self.career_tab, padx=14, pady=12)
-        result.pack(fill="both", expand=True)
         self._label(result, "2. Revisa el plan de instalación", size=13, bold=True).pack(anchor="w", padx=4, pady=(2, 10))
         list_frame = ttk.Frame(result, style="Surface.TFrame")
         list_frame.pack(fill="both", expand=True)
@@ -274,15 +273,19 @@ class DesktopApp(tk.Tk):
         career_horizontal.grid(row=1, column=0, sticky="ew")
 
         actions = tk.Frame(self.career_tab, bg=COLORS["background"])
-        actions.pack(fill="x", pady=(12, 0))
-        self.prepare_btn = ttk.Button(actions, text="Preparar equipo", style="Primary.TButton", command=self._career_prepare, state="disabled")
+        self.career_summary = tk.StringVar(value="Analiza el equipo para comenzar.")
+        ttk.Label(actions, textvariable=self.career_summary, style="Muted.TLabel").pack(anchor="w", fill="x", pady=(0, 5))
+        action_buttons = tk.Frame(actions, bg=COLORS["background"])
+        action_buttons.pack(fill="x")
+        self.prepare_btn = ttk.Button(action_buttons, text="Preparar equipo", style="Primary.TButton", command=self._career_prepare, state="disabled")
         self.prepare_btn.pack(side="right")
-        self.cancel_prepare_btn = ttk.Button(actions, text="Detener después del actual",
+        self.cancel_prepare_btn = ttk.Button(action_buttons, text="Detener después del actual",
                                               style="Secondary.TButton", command=self._request_cancel_install,
                                               state="disabled")
         self.cancel_prepare_btn.pack(side="right", padx=(0, 8))
-        self.career_summary = tk.StringVar(value="Analiza el equipo para comenzar.")
-        ttk.Label(actions, textvariable=self.career_summary, style="Muted.TLabel").pack(side="left")
+        # Reserve bottom actions before giving remaining height to the table.
+        actions.pack(side="bottom", fill="x", pady=(10, 0))
+        result.pack(fill="both", expand=True)
         self.current_plan: dict | None = None
         self.plan_epoch = 0
 
@@ -303,7 +306,6 @@ class DesktopApp(tk.Tk):
         self.search_btn.pack(side="left", padx=(10, 0))
 
         results = self._panel(self.software_tab, padx=14, pady=12)
-        results.pack(fill="both", expand=True)
         self._label(results, "Resultados", size=13, bold=True).pack(anchor="w", padx=4, pady=(2, 10))
         list_frame = ttk.Frame(results, style="Surface.TFrame")
         list_frame.pack(fill="both", expand=True)
@@ -327,15 +329,18 @@ class DesktopApp(tk.Tk):
         self.software_tree.bind("<<TreeviewSelect>>", lambda _e: self._update_software_actions())
 
         buttons = tk.Frame(self.software_tab, bg=COLORS["background"])
-        buttons.pack(fill="x", pady=(12, 0))
-        self.install_btn = ttk.Button(buttons, text="Instalar seleccionado", style="Primary.TButton",
+        self.software_info = tk.StringVar(value="Busca por nombre, por ejemplo: Python, Git, MySQL o RStudio.")
+        ttk.Label(buttons, textvariable=self.software_info, style="Muted.TLabel").pack(anchor="w", fill="x", pady=(0, 5))
+        action_buttons = tk.Frame(buttons, bg=COLORS["background"])
+        action_buttons.pack(fill="x")
+        self.install_btn = ttk.Button(action_buttons, text="Instalar seleccionado", style="Primary.TButton",
                                        command=self._install_selected, state="disabled")
         self.install_btn.pack(side="right")
-        self.uninstall_btn = ttk.Button(buttons, text="Desinstalar seleccionado", style="Secondary.TButton",
+        self.uninstall_btn = ttk.Button(action_buttons, text="Desinstalar seleccionado", style="Secondary.TButton",
                                          command=self._uninstall_selected, state="disabled")
         self.uninstall_btn.pack(side="right", padx=(0, 8))
-        self.software_info = tk.StringVar(value="Busca por nombre, por ejemplo: Python, Git, MySQL o RStudio.")
-        ttk.Label(buttons, textvariable=self.software_info, style="Muted.TLabel").pack(side="left")
+        buttons.pack(side="bottom", fill="x", pady=(10, 0))
+        results.pack(fill="both", expand=True)
 
     def _build_clean(self) -> None:
         intro = self._panel(self.clean_tab)
