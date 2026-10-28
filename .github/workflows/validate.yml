@@ -46,9 +46,21 @@ jobs:
       - name: Import desktop application
         shell: pwsh
         run: python -c "from academic_toolkit.desktop_app import DesktopApp; print('desktop GUI import OK')"
+      - name: Install CI-only screenshot helper
+        shell: pwsh
+        run: python -m pip install Pillow
       - name: Validate desktop navigation and progress
         shell: pwsh
+        env:
+          AAK_SCREENSHOT_DIR: ${{ runner.temp }}/academic-kit-ui
         run: python tests/gui_smoke.py
+      - name: Upload desktop screenshot diagnostics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: academic-kit-ui-windows
+          path: ${{ runner.temp }}/academic-kit-ui/*.png
+          if-no-files-found: ignore
       - name: Run Python safety and smoke tests on Windows
         shell: pwsh
         run: python -m unittest discover -s tests -v
