@@ -4,7 +4,7 @@
 
 [![Academic Automation Kit demo](docs/media/demo.gif)](docs/media/demo.mp4)
 
-A safety-first toolkit that audits and prepares student computers for academic work. It favors transparent diagnostics, explicit confirmation and reversible actions.
+A safety-first toolkit that audits and prepares student computers for academic work. It favors transparent diagnostics, explicit confirmation and conservative system changes.
 
 ## Highlights
 
@@ -13,6 +13,8 @@ A safety-first toolkit that audits and prepares student computers for academic w
 - MySQL/Laragon conflict diagnostics.
 - Optional local AI setup.
 - CLI and graphical interface.
+- No automatic Temp cleanup during installations. Optional cleanup targets only this application's own stale cache files, never system-wide Temp directories.
+- The separate MySQL setup binds to localhost by default; LAN access requires an explicit `-AllowLan` option.
 
 ## Quick start
 
