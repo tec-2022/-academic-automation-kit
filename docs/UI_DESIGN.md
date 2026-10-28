@@ -75,6 +75,9 @@ acciones críticas exigen una confirmación independiente de su color.
   navegación, los botones bloqueados y el progreso sin instalar nada.
 - Antes de etiquetar un lanzamiento, se requiere inspección manual en Windows,
   incluido escalado de 125 % y pantallas pequeñas, con capturas reales.
+- La CI de Windows captura las cinco páginas y guarda diagnósticos como artefacto
+  descargable; Inicio y Preparar mi PC se publican en el README como evidencia
+  verificable de la interfaz a 1000 × 690.
 
 ## Referencias públicas
 

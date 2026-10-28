@@ -20,6 +20,7 @@ A safety-first toolkit that audits and prepares student computers for academic w
 - Redesigned desktop UI with persistent sidebar navigation, clearer software tables and progress feedback.
 - Career setup can stop its queue safely between packages; it never attempts to terminate an installer halfway through.
 - Five keyboard-accessible pages (Ctrl+1 to Ctrl+5), without third-party GUI dependencies.
+- See [real screenshots of the Windows desktop UI](README.md#capturas-reales-en-windows) captured during GUI smoke testing at 1000 × 690.
 - No automatic Temp cleanup during installations. Optional cleanup targets only this application's own stale cache files, never system-wide Temp directories.
 - The separate MySQL setup binds to localhost by default; LAN access requires an explicit `-AllowLan` option.
 

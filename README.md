@@ -50,6 +50,20 @@ La interfaz incluye funciones reales, no tarjetas vacías:
 Las operaciones lentas se ejecutan en segundo plano para que la ventana no quede congelada durante búsquedas, auditorías o instalaciones.
 La barra inferior distingue operaciones indeterminadas de la preparación por carrera, que informa cuántos paquetes se han procesado. El panel lateral ofrece atajos de teclado **Ctrl+1 a Ctrl+5**.
 
+### Capturas reales en Windows
+
+Estas imágenes se capturaron durante la validación automática de la interfaz en Windows,
+con una ventana de **1000 × 690**. No muestran instalaciones simuladas ni resultados inventados.
+
+<img src="docs/media/screenshot-home.png" alt="Pantalla de inicio: navegación lateral, acciones y estado del equipo" width="760" />
+
+<details>
+<summary>Ver pantalla Preparar mi PC</summary>
+
+<img src="docs/media/screenshot-preparar.png" alt="Selección de carrera, niveles y tabla de preparación con botones visibles" width="760" />
+
+</details>
+
 ## Preparar una PC según la carrera
 
 El flujo principal es: **detectar → auditar → mostrar plan → confirmar → preparar → instalar → verificar**.
