@@ -58,9 +58,10 @@ def configure_styles(style: ttk.Style) -> None:
                     borderwidth=0, relief="flat", padding=(18, 11), font=(FONT, 10, "bold"))
     style.map("Primary.TButton", background=[("disabled", "#AFC4E4"), ("active", c["accent_hover"])],
               foreground=[("disabled", c["white"])])
-    style.configure("Secondary.TButton", background=c["surface"], foreground=c["text"],
-                    bordercolor=c["border"], borderwidth=1, relief="flat", padding=(15, 10), font=(FONT, 10))
-    style.map("Secondary.TButton", background=[("active", c["surface_alt"]), ("disabled", c["surface_alt"])])
+    style.configure("Secondary.TButton", background=c["accent_pale"], foreground=c["accent"],
+                    borderwidth=0, relief="flat", padding=(15, 10), font=(FONT, 10, "bold"))
+    style.map("Secondary.TButton", background=[("active", "#D3E5FF"), ("disabled", c["surface_alt"])],
+              foreground=[("disabled", c["subtle"])])
     style.configure("Danger.TButton", background=c["danger"], foreground=c["white"],
                     borderwidth=0, relief="flat", padding=(15, 10), font=(FONT, 10, "bold"))
     style.map("Danger.TButton", background=[("active", c["danger_hover"]), ("disabled", "#D8ADB2")])

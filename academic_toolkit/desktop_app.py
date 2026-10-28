@@ -109,7 +109,8 @@ class DesktopApp(tk.Tk):
         ttk.Label(header, textvariable=self.page_subtitle, style="Muted.TLabel").pack(anchor="w", pady=(5, 0))
 
         self.page_container = tk.Frame(main, bg=COLORS["background"])
-        self.page_container.pack(fill="both", expand=True, padx=30, pady=(4, 10))
+        # Page content is packed after the footer and operation strip. Those
+        # fixed actions must never be pushed outside a compact laptop window.
         self.home_tab = tk.Frame(self.page_container, bg=COLORS["background"])
         self.career_tab = tk.Frame(self.page_container, bg=COLORS["background"])
         self.software_tab = tk.Frame(self.page_container, bg=COLORS["background"])
@@ -127,9 +128,10 @@ class DesktopApp(tk.Tk):
         self._build_assistant()
 
         self.status_mount = tk.Frame(main, bg=COLORS["background"])
-        self.status_mount.pack(fill="x", padx=30, pady=(0, 6))
         footer = tk.Frame(main, bg=COLORS["background"])
-        footer.pack(fill="x", padx=30, pady=(0, 17))
+        footer.pack(side="bottom", fill="x", padx=30, pady=(0, 12))
+        self.status_mount.pack(side="bottom", fill="x", padx=30, pady=(0, 6))
+        self.page_container.pack(side="top", fill="both", expand=True, padx=30, pady=(4, 10))
         ttk.Label(footer, text=f"© 2026 {AUTHOR}", style="Muted.TLabel").pack(side="left")
         self.global_status = tk.StringVar(value="Listo")
         ttk.Label(footer, textvariable=self.global_status, style="Muted.TLabel").pack(side="right")
@@ -251,7 +253,7 @@ class DesktopApp(tk.Tk):
         list_frame = ttk.Frame(result, style="Surface.TFrame")
         list_frame.pack(fill="both", expand=True)
         self.career_tree = ttk.Treeview(list_frame, columns=("tier", "state", "compat"), show="tree headings",
-                                        selectmode="browse")
+                                        selectmode="browse", height=4)
         self.career_tree.heading("#0", text="Programa")
         self.career_tree.heading("tier", text="Nivel")
         self.career_tree.heading("state", text="Estado")
@@ -306,7 +308,7 @@ class DesktopApp(tk.Tk):
         list_frame = ttk.Frame(results, style="Surface.TFrame")
         list_frame.pack(fill="both", expand=True)
         self.software_tree = ttk.Treeview(list_frame, columns=("name", "id", "version"), show="headings",
-                                          selectmode="browse")
+                                          selectmode="browse", height=4)
         self.software_tree.heading("name", text="Nombre")
         self.software_tree.heading("id", text="ID de paquete")
         self.software_tree.heading("version", text="Versión / fuente")

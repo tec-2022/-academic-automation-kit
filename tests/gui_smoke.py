@@ -63,8 +63,12 @@ def main() -> None:
                     print(f"Optional screenshot unavailable ({page}): {exc}")
             if page == "career" and app.prepare_btn.winfo_ismapped():
                 assert app.prepare_btn.winfo_height() > 20
+                assert (app.prepare_btn.winfo_rooty() + app.prepare_btn.winfo_height()
+                        <= app.page_container.winfo_rooty() + app.page_container.winfo_height())
             if page == "software" and app.install_btn.winfo_ismapped():
                 assert app.install_btn.winfo_height() > 20
+                assert (app.install_btn.winfo_rooty() + app.install_btn.winfo_height()
+                        <= app.page_container.winfo_rooty() + app.page_container.winfo_height())
         assert app.prepare_btn.instate(["disabled"])
         assert app.install_btn.instate(["disabled"])
         assert app.uninstall_btn.instate(["disabled"])

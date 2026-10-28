@@ -32,7 +32,8 @@ class EnhancedDesktopApp(DesktopApp):
                  fg=COLORS["muted"], font=(FONT, 9)).pack(side="right")
 
         self.operation_progress = ttk.Progressbar(panel, mode="indeterminate")
-        self.operation_progress.pack(fill="x", pady=(8, 0))
+        # Hidden while idle: a stationary indeterminate bar looks like an
+        # unfinished operation even when the app is ready.
 
         # Keep the existing footer status synchronized with the more visible strip.
         self._operation_running = False
@@ -43,6 +44,7 @@ class EnhancedDesktopApp(DesktopApp):
         self._operation_running = False
         self._operation_determinate = True
         self.operation_progress.configure(mode="determinate", maximum=max(1, total), value=0)
+        self.operation_progress.pack(fill="x", pady=(8, 0))
         self.operation_detail.set(f"0 de {total} programas procesados")
 
     def _progress_step(self, completed: int, total: int, package: str) -> None:
@@ -65,6 +67,7 @@ class EnhancedDesktopApp(DesktopApp):
             if self._operation_running:
                 self.operation_progress.stop()
                 self._operation_running = False
+            self.operation_progress.pack_forget()
             self.configure(cursor="")
         else:
             if self._operation_determinate and not self._install_in_progress:
@@ -74,6 +77,7 @@ class EnhancedDesktopApp(DesktopApp):
             if not self._operation_determinate:
                 self.operation_detail.set("Operación en curso")
             if not self._operation_running and not self._operation_determinate:
+                self.operation_progress.pack(fill="x", pady=(8, 0))
                 self.operation_progress.start(12)
                 self._operation_running = True
             self.configure(cursor="watch")
